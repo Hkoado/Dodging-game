@@ -1,5 +1,4 @@
 #include "player.h"
-#include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>
 
@@ -7,10 +6,36 @@
 const float Player::PLAYER_VEL = 1.0f;
 
 Player::Player(SDL_Renderer* renderer)
-    : mPosX(0), mPosY(GROUND_LEVEL), mVelX(0), mVelY(0), mJumpSpeed(7.0f), mGravity(0.1f), mMovingToTarget(false), mRenderer(renderer) {
+    : mPosX(0), mPosY(GROUND_LEVEL), mVelX(0), mVelY(0),
+    mJumpSpeed(-6.0f), mGravity(0.05f), mIsJumping(false),
+    mRenderer(renderer), mTexture(nullptr), mJumpSound(nullptr) {
+
     mTexture = loadTexture("player.png");
     if (mTexture == nullptr) {
         std::cerr << "Failed to load player texture!" << std::endl;
+    }
+
+  
+    mJumpSound = Mix_LoadWAV("jump_sound.wav");
+    if (mJumpSound == nullptr) {
+        std::cerr << "Failed to load jump sound effect! SDL_mixer Error: " << Mix_GetError() << std::endl;
+    }
+
+  
+    mCollider = { mPosX, mPosY, PLAYER_WIDTH, PLAYER_HEIGHT };
+}
+
+Player::~Player() {
+   
+    if (mTexture != nullptr) {
+        SDL_DestroyTexture(mTexture);
+        mTexture = nullptr;
+    }
+
+    
+    if (mJumpSound != nullptr) {
+        Mix_FreeChunk(mJumpSound);
+        mJumpSound = nullptr;
     }
 }
 
@@ -33,9 +58,19 @@ SDL_Texture* Player::loadTexture(std::string path) {
 void Player::handleEvent(SDL_Event& e) {
     if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
         switch (e.key.keysym.sym) {
+        case SDLK_SPACE:
+            if (!mIsJumping) {
+                mVelY = mJumpSpeed;
+                mIsJumping = true;
+
+               
+                if (mJumpSound != nullptr) {
+                    Mix_PlayChannel(-1, mJumpSound, 0);  
+                }
+            }
+            break;
         case SDLK_LEFT: mVelX -= PLAYER_VEL; break;
         case SDLK_RIGHT: mVelX += PLAYER_VEL; break;
-        case SDLK_SPACE: if (mPosY == GROUND_LEVEL) mVelY = -mJumpSpeed; break;
         }
     }
     else if (e.type == SDL_KEYUP && e.key.repeat == 0) {
@@ -50,31 +85,29 @@ void Player::move() {
     mPosX += static_cast<int>(mVelX);
     mPosY += static_cast<int>(mVelY);
 
-    if (mPosX < 0) {
-        mPosX = 0;
-    }
-    else if (mPosX + PLAYER_WIDTH > SCREEN_WIDTH) {
-        mPosX = SCREEN_WIDTH - PLAYER_WIDTH;
+    if (mIsJumping) {
+        mVelY += mGravity;
     }
 
-    if (mPosY < 0) {
-        mPosY = 0;
+    if ((mPosX < 0) || (mPosX + PLAYER_WIDTH > SCREEN_WIDTH)) {
+        mPosX -= static_cast<int>(mVelX);
     }
-    else if (mPosY > GROUND_LEVEL) {
+
+    if (mPosY >= GROUND_LEVEL) {
         mPosY = GROUND_LEVEL;
         mVelY = 0;
+        mIsJumping = false;
     }
 
-    if (mPosY < GROUND_LEVEL) {
-        applyGravity();
-    }
-}
-
-void Player::applyGravity() {
-    mVelY += mGravity;
+    mCollider.x = mPosX;
+    mCollider.y = mPosY;
 }
 
 void Player::render() {
     SDL_Rect renderQuad = { mPosX, mPosY, PLAYER_WIDTH, PLAYER_HEIGHT };
     SDL_RenderCopy(mRenderer, mTexture, nullptr, &renderQuad);
+}
+
+SDL_Rect Player::getCollider() const {
+    return mCollider;
 }
