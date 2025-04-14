@@ -19,7 +19,7 @@ Arrow::Arrow(SDL_Renderer* renderer, bool falling) : gRenderer(renderer), speed(
         int maxY = SCREEN_HEIGHT - ARROW_HEIGHT;
         int minY = SCREEN_HEIGHT - MAX_JUMP_HEIGHT - ARROW_HEIGHT;
         mCollider = { SCREEN_WIDTH, rand() % (maxY - minY) + minY, ARROW_WIDTH, ARROW_HEIGHT };
-        rotationAngle = 0.0; // Không xoay
+        rotationAngle = 0.0;
     }
 }
 

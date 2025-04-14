@@ -21,8 +21,8 @@ private:
     int speed;
     bool isFalling;
     double rotationAngle;
-    static const int ARROW_WIDTH = 100; 
-    static const int ARROW_HEIGHT = 20; 
+    static const int ARROW_WIDTH = 80; 
+    static const int ARROW_HEIGHT = 15; 
 };
 
 #endif

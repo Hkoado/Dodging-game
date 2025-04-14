@@ -10,7 +10,6 @@
 #include <vector>
 #include <ctime>
 
-// Function to render text
 void renderText(SDL_Renderer* renderer, const std::string& text, int x, int y, TTF_Font* font, SDL_Color color);
 
 bool init();
@@ -19,40 +18,27 @@ void close();
 void showMenu();
 void showGameOver();
 SDL_Texture* loadTexture(std::string path);
-
-// The window we'll be rendering to
 SDL_Window* gWindow = nullptr;
-
-// The window renderer
 SDL_Renderer* gRenderer = nullptr;
-
-// The player
 Player* gPlayer = nullptr;
-
-// The background texture
 SDL_Texture* gBackgroundTexture = nullptr;
-
-// The start screen texture
 SDL_Texture* gStartScreenTexture = nullptr;
-
-// The game over screen texture
 SDL_Texture* gGameOverScreenTexture = nullptr;
 
-// The music for start and game over screens
+
 Mix_Music* gStartMusic = nullptr;
 Mix_Music* gGameOverMusic = nullptr;
 Mix_Music* gGameMusic = nullptr;
-// Background positions
-float bgX1 = 0.0f; // Ensure these are float literals
+float bgX1 = 0.0f; 
 float bgX2 = SCREEN_WIDTH;
 
 std::vector<Arrow*> arrows;
-Uint32 lastArrowTime = 0; // Timer to control arrow generation
-
-// Variables for scoring
+Uint32 lastArrowTime = 0;
 Uint32 startTime = 0;
 int score = 0;
 int highScore = 0;
+int arrowCount = 1;
+int lastMilestone = 0;
 
 TTF_Font* gFont = nullptr;
 bool init() {
@@ -310,6 +296,11 @@ void showMenu() {
     }
 }
 
+void resetGame() {
+    arrowCount = 1;
+    lastMilestone = 0;
+    score = 0;
+}
 int main(int argc, char* args[]) {
     if (!init()) {
         std::cerr << "Failed to initialize!" << std::endl;
@@ -327,7 +318,7 @@ int main(int argc, char* args[]) {
         bool quit = false;
         SDL_Event e;
 
-        // Phát nhạc nền khi chơi game
+       
         Mix_PlayMusic(gGameMusic, -1);
 
         srand(static_cast<unsigned int>(time(nullptr)));
@@ -356,14 +347,26 @@ int main(int argc, char* args[]) {
 
             Uint32 currentTime = SDL_GetTicks();
             if (currentTime - lastArrowTime >= (rand() % 1000 + 1000)) {
-             
-                bool falling = (rand() % 2 == 0); 
-                arrows.push_back(new Arrow(gRenderer, falling));
+                for (int i = 0; i < arrowCount; ++i) {
+                    bool falling = (rand() % 2 == 0);
+                    arrows.push_back(new Arrow(gRenderer, falling));
+                }
                 lastArrowTime = currentTime;
             }
 
-            for (auto& arrow : arrows) {
+            for (auto it = arrows.begin(); it != arrows.end(); ) {
+                Arrow* arrow = *it;
                 arrow->move();
+
+                SDL_Rect collider = arrow->getCollider();
+                if (collider.y > SCREEN_HEIGHT || collider.y + collider.h < 0 ||
+                    collider.x > SCREEN_WIDTH || collider.x + collider.w < 0) {
+                    delete arrow; 
+                    it = arrows.erase(it);
+                }
+                else {
+                    ++it;
+                }
             }
 
             SDL_Rect playerCollider = gPlayer->getCollider();
@@ -377,7 +380,10 @@ int main(int argc, char* args[]) {
             }
 
             score = (currentTime - startTime) / 100;
-
+            if (score % 100 == 0 && score > lastMilestone) {
+                arrowCount ++; 
+                lastMilestone = score; 
+            }
             SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
             SDL_RenderClear(gRenderer);
 
@@ -393,10 +399,9 @@ int main(int argc, char* args[]) {
 
             SDL_RenderPresent(gRenderer);
         }
-
         gameOverScreen();
+        resetGame();
     }
-
     close();
 
     return 0;
