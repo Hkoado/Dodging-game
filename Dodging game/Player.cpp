@@ -2,7 +2,6 @@
 #include <SDL_image.h>
 #include <iostream>
 
-// Initialize static member
 const float Player::PLAYER_VEL = 1.0f;
 
 Player::Player(SDL_Renderer* renderer)
