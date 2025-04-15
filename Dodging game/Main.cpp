@@ -240,6 +240,7 @@ void gameOverScreen() {
                 case SDLK_m: 
                     isMuted = !isMuted;
                     Mix_VolumeMusic(isMuted ? 0 : MIX_MAX_VOLUME);
+                    Mix_Volume(-1, isMuted ? 0 : MIX_MAX_VOLUME);
                     break;
                 }
             }
@@ -286,6 +287,7 @@ void showMenu() {
                 case SDLK_m: 
                     isMuted = !isMuted;
                     Mix_VolumeMusic(isMuted ? 0 : MIX_MAX_VOLUME);
+                    Mix_Volume(-1, isMuted ? 0 : MIX_MAX_VOLUME); 
                 }
             }
         }
