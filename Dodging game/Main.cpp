@@ -17,6 +17,7 @@ bool loadMedia();
 void close();
 void showMenu();
 void showGameOver();
+bool isMuted = false; 
 SDL_Texture* loadTexture(std::string path);
 SDL_Window* gWindow = nullptr;
 SDL_Renderer* gRenderer = nullptr;
@@ -39,7 +40,7 @@ int score = 0;
 int highScore = 0;
 int arrowCount = 1;
 int lastMilestone = 0;
-
+int volume = 20; 
 TTF_Font* gFont = nullptr;
 bool init() {
     bool success = true;
@@ -92,6 +93,7 @@ bool loadMedia() {
     if (gGameMusic == nullptr) {
         std::cerr << "Failed to load game music! SDL_mixer Error: " << Mix_GetError() << std::endl;
         success = false;
+    } else{ Mix_VolumeMusic(64); 
     }
 
     gPlayer = new Player(gRenderer);
@@ -211,6 +213,7 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
     return (a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y);
 }
 
+
 void gameOverScreen() {
     bool quit = false;
     SDL_Event e;
@@ -234,6 +237,10 @@ void gameOverScreen() {
                 case SDLK_ESCAPE:
                     quit = true;
                     break;
+                case SDLK_m: 
+                    isMuted = !isMuted;
+                    Mix_VolumeMusic(isMuted ? 0 : MIX_MAX_VOLUME);
+                    break;
                 }
             }
         }
@@ -243,13 +250,12 @@ void gameOverScreen() {
 
         SDL_Rect renderQuad = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
         SDL_RenderCopy(gRenderer, gGameOverScreenTexture, nullptr, &renderQuad);
-
-        SDL_Color textColor = { 0, 0, 0, 255 };
-        renderText(gRenderer, "Game Over", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 100, gFont, textColor);
-        renderText(gRenderer, "Score: " + std::to_string(score), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50, gFont, textColor);
-        renderText(gRenderer, "High Score: " + std::to_string(highScore), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, gFont, textColor);
+        SDL_Color textColor = { 204, 201, 194 };
+        renderText(gRenderer, "   GAME OVER =((", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 100, gFont, textColor);
+        renderText(gRenderer, "     Score: " + std::to_string(score), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50, gFont, textColor);
+        renderText(gRenderer, "  High Score: " + std::to_string(highScore), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, gFont, textColor);
         renderText(gRenderer, "Press ENTER to restart or ESC to quit", SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 2 + 50, gFont, textColor);
-
+        renderText(gRenderer, "Press M to mute/unmute", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 + 100, gFont, textColor);
         SDL_RenderPresent(gRenderer);
     }
 
@@ -277,6 +283,9 @@ void showMenu() {
                 case SDLK_ESCAPE:
                     close();
                     exit(0);
+                case SDLK_m: 
+                    isMuted = !isMuted;
+                    Mix_VolumeMusic(isMuted ? 0 : MIX_MAX_VOLUME);
                 }
             }
         }
@@ -286,12 +295,10 @@ void showMenu() {
 
         SDL_Rect renderQuad = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
         SDL_RenderCopy(gRenderer, gStartScreenTexture, nullptr, &renderQuad);
-
-        SDL_Color textColor = { 0, 0, 0, 255 };
-        renderText(gRenderer, "Dodging Game", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 100, gFont, textColor);
-        renderText(gRenderer, "Press ENTER to start", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50, gFont, textColor);
-        renderText(gRenderer, "Press ESC to quit", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, gFont, textColor);
-
+        SDL_Color textColor = { 204, 201, 194 };
+        renderText(gRenderer, "  Press ENTER to start", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50, gFont, textColor);
+        renderText(gRenderer, "    Press ESC to quit", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, gFont, textColor);
+        renderText(gRenderer, "Press M to mute/unmute", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 50, gFont, textColor);
         SDL_RenderPresent(gRenderer);
     }
 }
@@ -300,8 +307,7 @@ void resetGame() {
     arrowCount = 1;
     lastMilestone = 0;
     score = 0;
-}
-int main(int argc, char* args[]) {
+}int main(int argc, char* args[]) {
     if (!init()) {
         std::cerr << "Failed to initialize!" << std::endl;
         return -1;
@@ -311,7 +317,6 @@ int main(int argc, char* args[]) {
         std::cerr << "Failed to load media!" << std::endl;
         return -1;
     }
-
     showMenu();
 
     while (true) {
@@ -338,7 +343,6 @@ int main(int argc, char* args[]) {
                     close();
                     return 0;
                 }
-
                 gPlayer->handleEvent(e);
             }
 
@@ -354,21 +358,6 @@ int main(int argc, char* args[]) {
                 lastArrowTime = currentTime;
             }
 
-            for (auto it = arrows.begin(); it != arrows.end(); ) {
-                Arrow* arrow = *it;
-                arrow->move();
-
-                SDL_Rect collider = arrow->getCollider();
-                if (collider.y > SCREEN_HEIGHT || collider.y + collider.h < 0 ||
-                    collider.x > SCREEN_WIDTH || collider.x + collider.w < 0) {
-                    delete arrow; 
-                    it = arrows.erase(it);
-                }
-                else {
-                    ++it;
-                }
-            }
-
             SDL_Rect playerCollider = gPlayer->getCollider();
             for (auto& arrow : arrows) {
                 if (checkCollision(playerCollider, arrow->getCollider())) {
@@ -378,8 +367,7 @@ int main(int argc, char* args[]) {
                     quit = true;
                 }
             }
-
-            score = (currentTime - startTime) / 100;
+            score = (currentTime - startTime) / 150;
             if (score % 100 == 0 && score > lastMilestone) {
                 arrowCount ++; 
                 lastMilestone = score; 
@@ -393,8 +381,21 @@ int main(int argc, char* args[]) {
             for (auto& arrow : arrows) {
                 arrow->render();
             }
+            for (auto it = arrows.begin(); it != arrows.end(); ) {
+                Arrow* arrow = *it;
+                arrow->move();
 
-            SDL_Color textColor = { 245, 194, 66, 0 };
+                SDL_Rect collider = arrow->getCollider();
+                if (collider.y > SCREEN_HEIGHT || collider.y + collider.h < 0 ||
+                    collider.x > SCREEN_WIDTH || collider.x + collider.w < 0) {
+                    delete arrow;
+                    it = arrows.erase(it);
+                }
+                else {
+                    ++it;
+                }
+            }
+            SDL_Color textColor = { 0,0, 0, 255 };
             renderText(gRenderer, "Score: " + std::to_string(score), SCREEN_WIDTH - 150, 10, gFont, textColor);
 
             SDL_RenderPresent(gRenderer);
