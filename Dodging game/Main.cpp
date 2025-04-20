@@ -355,7 +355,7 @@ void resetGame() {
                     quit = true;
                 }
             }
-            score = (currentTime - startTime) / 200;
+            score = (currentTime - startTime) / 150;
             if (score % 100 == 0 && score > lastMilestone) {
                 arrowCount ++; 
                 lastMilestone = score; 
