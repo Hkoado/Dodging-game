@@ -190,24 +190,11 @@ void close() {
     SDL_Quit();
 }
 
-void updateBackground() {
-    bgX1 -= 0.5f;
-    bgX2 -= 0.5f;
-
-    if (bgX1 <= -SCREEN_WIDTH) {
-        bgX1 = SCREEN_WIDTH;
-    }
-    if (bgX2 <= -SCREEN_WIDTH) {
-        bgX2 = SCREEN_WIDTH;
-    }
-}
-
 void renderBackground() {
-    SDL_Rect bgRect1 = { static_cast<int>(bgX1), 0, SCREEN_WIDTH, SCREEN_HEIGHT };
-    SDL_Rect bgRect2 = { static_cast<int>(bgX2), 0, SCREEN_WIDTH, SCREEN_HEIGHT };
-    SDL_RenderCopy(gRenderer, gBackgroundTexture, nullptr, &bgRect1);
-    SDL_RenderCopy(gRenderer, gBackgroundTexture, nullptr, &bgRect2);
+    SDL_Rect bgRect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+    SDL_RenderCopy(gRenderer, gBackgroundTexture, nullptr, &bgRect);
 }
+
 
 bool checkCollision(SDL_Rect a, SDL_Rect b) {
     return (a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y);
@@ -240,6 +227,7 @@ void gameOverScreen() {
                 case SDLK_m: 
                     isMuted = !isMuted;
                     Mix_VolumeMusic(isMuted ? 0 : MIX_MAX_VOLUME);
+                    Mix_Volume(-1, isMuted ? 0 : MIX_MAX_VOLUME);
                     break;
                 }
             }
@@ -286,6 +274,7 @@ void showMenu() {
                 case SDLK_m: 
                     isMuted = !isMuted;
                     Mix_VolumeMusic(isMuted ? 0 : MIX_MAX_VOLUME);
+                    Mix_Volume(-1, isMuted ? 0 : MIX_MAX_VOLUME); 
                 }
             }
         }
@@ -347,7 +336,6 @@ void resetGame() {
             }
 
             gPlayer->move();
-            updateBackground();
 
             Uint32 currentTime = SDL_GetTicks();
             if (currentTime - lastArrowTime >= (rand() % 1000 + 1000)) {
@@ -367,7 +355,7 @@ void resetGame() {
                     quit = true;
                 }
             }
-            score = (currentTime - startTime) / 150;
+            score = (currentTime - startTime) / 200;
             if (score % 100 == 0 && score > lastMilestone) {
                 arrowCount ++; 
                 lastMilestone = score; 
