@@ -33,10 +33,6 @@ private:
     SDL_Renderer* mRenderer;
     static const int GROUND_LEVEL = SCREEN_HEIGHT - PLAYER_HEIGHT - 100;
     SDL_Rect mCollider;
-    void applyGravity();
-    int mTargetX;
-    bool mMovingToTarget;
-
     Mix_Chunk* mJumpSound;
 };
 
