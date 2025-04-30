@@ -16,7 +16,6 @@ bool init();
 bool loadMedia();
 void close();
 void showMenu();
-void showGameOver();
 bool isMuted = false; 
 SDL_Texture* loadTexture(std::string path);
 SDL_Window* gWindow = nullptr;
@@ -26,12 +25,9 @@ SDL_Texture* gBackgroundTexture = nullptr;
 SDL_Texture* gStartScreenTexture = nullptr;
 SDL_Texture* gGameOverScreenTexture = nullptr;
 
-
 Mix_Music* gStartMusic = nullptr;
 Mix_Music* gGameOverMusic = nullptr;
 Mix_Music* gGameMusic = nullptr;
-float bgX1 = 0.0f; 
-float bgX2 = SCREEN_WIDTH;
 
 std::vector<Arrow*> arrows;
 Uint32 lastArrowTime = 0;
@@ -40,7 +36,7 @@ int score = 0;
 int highScore = 0;
 int arrowCount = 1;
 int lastMilestone = 0;
-int volume = 20; 
+
 TTF_Font* gFont = nullptr;
 bool init() {
     bool success = true;
