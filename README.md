@@ -83,7 +83,7 @@ https://drive.google.com/file/d/1WQqbSb5PGTiHHCT1cpKmGzDKw1pLgnP_/view?usp=shari
 
 ---
 
-## Ngưỡng điểm mong muốn 7.5 - 8.5
+## Ngưỡng điểm mong muốn 7.5 - 8
 - Lý do em muốn được ngưỡng điểm này là vì:
 1. **Gameplay quen thuộc nhưng có cải tiến (8.5/10)**:  
    Game được lấy ý tưởng từ game khủng long chơi khi không có internet của google nhưng cải tiến về gameplay khi không chỉ nhảy để né như game gốc mà có thể di chuyển tuỳ ý.
