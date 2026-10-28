@@ -1,5 +1,3 @@
-# Họ và tên: ĐỖ ANH KHOA
-# MSV: 24022805
 # SDL Project: Dodging Game
 
 ## Giới thiệu về game
